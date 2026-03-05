@@ -6,7 +6,7 @@ from sentence_transformers import SentenceTransformer
 from datetime import datetime
 
 class MemoryManager:
-    """Stores all data + Ensures Uniqueness + Learning"""
+    """Stores ALL posts (Auto + Manual) + Ensures Uniqueness"""
     
     def __init__(self):
         # MongoDB (Free Tier)
@@ -15,6 +15,7 @@ class MemoryManager:
         self.posts_collection = self.db['posts']
         self.performance_collection = self.db['performance']
         self.topics_collection = self.db['posted_topics']
+        self.manual_uploads_collection = self.db['manual_uploads']
         
         # Qdrant Vector DB (Free Tier)
         self.qdrant = QdrantClient(
@@ -36,7 +37,7 @@ class MemoryManager:
         """Ensure content is unique (Not repeated)"""
         recent = list(self.topics_collection.find({
             'platform': platform
-        }).sort('posted_at', -1).limit(20))
+        }).sort('posted_at', -1).limit(30))
         
         posted_topics = [t['topic'] for t in recent]
         return topic not in posted_topics
@@ -68,13 +69,21 @@ class MemoryManager:
         }).sort('views', -1).limit(5))
         return [b['topic'] for b in best]
     
-    def save_post(self, post_data):
-        """Save new post to database"""
-        self.posts_collection.insert_one({
-            **post_data,
-            'created_at': datetime.now().isoformat(),
-            'status': 'published'
-        })
+    def save_auto_post(self, post_data):
+        """Save AI-generated post"""
+        post_data['upload_type'] = 'auto'
+        post_data['created_at'] = datetime.now().isoformat()
+        post_data['status'] = 'published'
+        self.posts_collection.insert_one(post_data)
+    
+    def save_manual_post(self, post_data):
+        """Save manually uploaded post"""
+        post_data['upload_type'] = 'manual'
+        post_data['created_at'] = datetime.now().isoformat()
+        post_data['status'] = 'published'
+        self.manual_uploads_collection.insert_one(post_data)
+        # Also add to main posts for analytics
+        self.posts_collection.insert_one(post_data)
     
     def update_performance(self, post_id, views, subs_gained, followers_gained):
         """Learning Loop: Track what works"""
@@ -87,8 +96,10 @@ class MemoryManager:
         })
     
     def get_analytics(self):
-        """Get complete dashboard data"""
+        """Get complete dashboard data (Auto + Manual)"""
         total_posts = self.posts_collection.count_documents({})
+        auto_posts = self.posts_collection.count_documents({'upload_type': 'auto'})
+        manual_posts = self.posts_collection.count_documents({'upload_type': 'manual'})
         
         # Platform breakdown
         yt_posts = self.posts_collection.count_documents({'platform': 'YouTube'})
@@ -105,8 +116,17 @@ class MemoryManager:
         total_subs = sum(p.get('subs_gained', 0) for p in self.performance_collection.find())
         total_followers = sum(p.get('followers_gained', 0) for p in self.performance_collection.find())
         
+        # Today's posts count
+        today = datetime.now().strftime('%Y-%m-%d')
+        today_posts = self.posts_collection.count_documents({
+            'created_at': {'$gte': today}
+        })
+        
         return {
             'total_posts': total_posts,
+            'auto_posts': auto_posts,
+            'manual_posts': manual_posts,
+            'today_posts': today_posts,
             'youtube_posts': yt_posts,
             'instagram_posts': ig_posts,
             'languages': languages,
@@ -114,3 +134,10 @@ class MemoryManager:
             'subscribers_gained': total_subs,
             'followers_gained': total_followers
         }
+    
+    def get_all_posts(self, limit=50):
+        """Get all posts (Auto + Manual)"""
+        posts = list(self.posts_collection.find().sort('created_at', -1).limit(limit))
+        for post in posts:
+            post['_id'] = str(post['_id'])
+        return posts
