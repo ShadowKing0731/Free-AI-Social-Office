@@ -18,7 +18,7 @@ class MemoryManager:
             try:
                 from pymongo import MongoClient
                 self.mongo = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000)
-                self.mongo.admin.command('ping')  # Test connection
+                self.mongo.admin.command('ping')
                 self.db = self.mongo['ai_free_social']
                 self.posts_collection = self.db['posts']
                 self.performance_collection = self.db['performance']
@@ -34,7 +34,7 @@ class MemoryManager:
                 self.mock_performance = []
     
     def check_topic_uniqueness(self, topic, platform):
-        """Ensure content is unique (Not repeated)"""
+        """Ensure content is unique"""
         if self.use_mock:
             recent = [t for t in self.mock_topics if t['platform'] == platform][-30:]
             posted_topics = [t['topic'].lower() for t in recent]
@@ -138,7 +138,7 @@ class MemoryManager:
                 print(f"[MEMORY] Update performance error: {e}")
     
     def get_analytics(self):
-        """Get complete dashboard data (Auto + Manual)"""
+        """Get complete dashboard data"""
         if self.use_mock:
             total_posts = len(self.mock_posts)
             auto_posts = len([p for p in self.mock_posts if p.get('upload_type') == 'auto'])
@@ -177,4 +177,57 @@ class MemoryManager:
                 languages = {}
                 for post in self.posts_collection.find():
                     lang = post.get('language', 'unknown')
-                    languages[lang] = languages.get(lang, 
+                    languages[lang] = languages.get(lang, 0) + 1
+                
+                total_views = sum(p.get('views', 0) for p in self.performance_collection.find())
+                total_subs = sum(p.get('subs_gained', 0) for p in self.performance_collection.find())
+                total_followers = sum(p.get('followers_gained', 0) for p in self.performance_collection.find())
+                
+                today = datetime.now().strftime('%Y-%m-%d')
+                today_posts = self.posts_collection.count_documents({
+                    'created_at': {'$gte': today}
+                })
+                
+                return {
+                    'total_posts': total_posts,
+                    'auto_posts': auto_posts,
+                    'manual_posts': manual_posts,
+                    'today_posts': today_posts,
+                    'youtube_posts': yt_posts,
+                    'instagram_posts': ig_posts,
+                    'languages': languages,
+                    'total_views': total_views,
+                    'subscribers_gained': total_subs,
+                    'followers_gained': total_followers
+                }
+            except Exception as e:
+                print(f"[MEMORY] Get analytics error: {e}")
+                return {
+                    'total_posts': 0,
+                    'auto_posts': 0,
+                    'manual_posts': 0,
+                    'today_posts': 0,
+                    'youtube_posts': 0,
+                    'instagram_posts': 0,
+                    'languages': {},
+                    'total_views': 0,
+                    'subscribers_gained': 0,
+                    'followers_gained': 0
+                }
+    
+    def get_all_posts(self, limit=50):
+        """Get all posts"""
+        if self.use_mock:
+            posts = self.mock_posts[-limit:]
+            for post in posts:
+                post['_id'] = str(hash(post.get('created_at', '')))
+            return posts
+        else:
+            try:
+                posts = list(self.posts_collection.find().sort('created_at', -1).limit(limit))
+                for post in posts:
+                    post['_id'] = str(post['_id'])
+                return posts
+            except Exception as e:
+                print(f"[MEMORY] Get posts error: {e}")
+                return []
