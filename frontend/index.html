@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 AI Social Office - 3 Daily Videos</title>
+    <title>🎬 AI Video Office - Auto + Manual</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
@@ -26,7 +26,6 @@
             background: #1e293b; 
             padding: 25px; 
             border-radius: 15px; 
-            text-align: center;
             border: 1px solid #334155;
         }
         
@@ -50,7 +49,7 @@
             border-radius: 10px; 
             cursor: pointer; 
             font-size: 16px;
-            margin: 10px;
+            margin: 10px 5px;
         }
         .btn:hover { background: #2563eb; }
         .btn-success { background: #22c55e; }
@@ -59,65 +58,20 @@
         .btn-warning:hover { background: #d97706; }
         .btn:disabled { background: #64748b; cursor: not-allowed; }
         
-        .post-item { 
-            background: #1e293b; 
-            padding: 15px; 
-            border-radius: 10px; 
-            margin-bottom: 10px;
-            border-left: 4px solid #3b82f6;
-        }
-        .post-youtube { border-left-color: #ff0000; }
-        .post-instagram { border-left-color: #e4405f; }
-        .post-auto { border-left-color: #3b82f6; }
-        .post-manual { border-left-color: #22c55e; }
-        
-        .language-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            margin: 3px;
-        }
-        .lang-hindi { background: #ff9933; }
-        .lang-telugu { background: #0066cc; }
-        .lang-tamil { background: #ff0000; }
-        .lang-english { background: #3b82f6; }
-        
-        .status-badge {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-        }
-        .status-success { background: #22c55e; }
-        .status-pending { background: #f59e0b; }
-        .status-failed { background: #ef4444; }
-        
-        .upload-type-badge {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
-        .type-auto { background: #3b82f6; }
-        .type-manual { background: #22c55e; }
-        
-        .progress-section {
-            background: #1e293b;
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .upload-form {
+        .section {
             background: #1e293b;
             padding: 25px;
             border-radius: 15px;
             margin-bottom: 30px;
+            border: 2px solid #334155;
         }
         
-        .upload-form h3 {
+        .section h2 {
             color: white;
             margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         
         .form-group {
@@ -143,79 +97,54 @@
             font-size: 14px;
         }
         
-        .form-group textarea {
-            height: 100px;
-            resize: vertical;
-        }
-        
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
         }
         
-        .progress-bar {
-            height: 10px;
-            background: #334155;
-            border-radius: 5px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #22c55e);
-            border-radius: 5px;
-        }
-        
-        .daily-goal {
-            background: linear-gradient(135deg, #1e293b, #334155);
-            padding: 20px;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            border: 2px solid #22c55e;
-        }
-        
-        .daily-goal h3 {
-            color: #22c55e;
+        .post-item { 
+            background: #0f172a; 
+            padding: 15px; 
+            border-radius: 10px; 
             margin-bottom: 10px;
+            border-left: 4px solid #3b82f6;
         }
+        .post-auto { border-left-color: #22c55e; }
+        .post-manual { border-left-color: #f59e0b; }
         
-        .goal-progress {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .mode-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            margin-left: 10px;
         }
+        .mode-auto { background: #22c55e; }
+        .mode-manual { background: #f59e0b; }
         
-        .goal-count {
-            font-size: 24px;
-            font-weight: bold;
-            color: #22c55e;
+        .language-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            margin: 3px;
         }
+        .lang-hindi { background: #ff9933; }
+        .lang-telugu { background: #0066cc; }
+        .lang-english { background: #3b82f6; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 AI Social Media Office</h1>
+        <h1>🎬 AI Video Office - Auto + Manual</h1>
         <p style="text-align: center; color: #94a3b8; margin-bottom: 30px;">
-            100% Free | 3 Daily Videos | Manual Upload | Multi-Language
+            Automatic Trending Videos + Manual Prompt Videos | YouTube & Instagram
         </p>
         
-        <!-- Daily Goal -->
-        <div class="daily-goal">
-            <h3>📊 Today's Goal: 3 Videos</h3>
-            <div class="goal-progress">
-                <span class="goal-count" id="today-posts">0/3</span>
-                <div class="progress-bar" style="flex: 1;">
-                    <div class="progress-fill" id="today-progress" style="width: 0%;"></div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Analytics Grid -->
+        <!-- Analytics -->
         <div class="grid">
             <div class="card">
-                <h3>🎬 Total Posts</h3>
+                <h3>🎬 Total Videos</h3>
                 <div class="stat-value" id="total-posts">0</div>
                 <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
                     <span id="auto-posts">0</span> Auto | <span id="manual-posts">0</span> Manual
@@ -235,116 +164,97 @@
             </div>
         </div>
         
-        <!-- Auto Growth Button -->
-        <div class="progress-section" style="text-align: center;">
-            <h3 style="margin-bottom: 20px;">🤖 Auto 3 Daily Videos</h3>
+        <!-- AUTOMATIC VIDEO CREATION -->
+        <div class="section">
+            <h2>🤖 Automatic Video (Trending Topics)</h2>
             <p style="color: #94a3b8; margin-bottom: 20px;">
-                AI will create 3 unique videos (Hindi + Telugu + Tamil/English)
+                AI checks trending topics → Creates video → Uploads automatically with title, description, tags
             </p>
-            <button class="btn btn-success" id="growth-btn" onclick="runDaily3Videos()">
-                🚀 Create 3 Daily Videos Now
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Category</label>
+                    <select id="auto-category">
+                        <option value="all">All Categories</option>
+                        <option value="technology">Technology</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="education">Education</option>
+                        <option value="motivation">Motivation</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Language</label>
+                    <select id="auto-language">
+                        <option value="hindi">Hindi (हिंदी)</option>
+                        <option value="telugu">Telugu (తెలుగు)</option>
+                        <option value="tamil">Tamil (தமிழ்)</option>
+                        <option value="english">English</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Platform</label>
+                <select id="auto-platform">
+                    <option value="YouTube">YouTube</option>
+                    <option value="Instagram">Instagram</option>
+                </select>
+            </div>
+            
+            <button class="btn btn-success" id="auto-btn" onclick="createAutoVideo()">
+                🚀 Create Auto Video (Trending)
             </button>
         </div>
         
-        <!-- Manual Upload Form -->
-        <div class="upload-form">
-            <h3>📤 Manual Video Upload</h3>
+        <!-- MANUAL VIDEO CREATION -->
+        <div class="section">
+            <h2>✍️ Manual Video (Your Prompt)</h2>
             <p style="color: #94a3b8; margin-bottom: 20px;">
-                Upload your own video to YouTube or Instagram
+                You give topic → AI creates everything → Uploads automatically
             </p>
             
-            <form id="upload-form" onsubmit="handleManualUpload(event)">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Video Title *</label>
-                        <input type="text" id="upload-title" required placeholder="Enter video title">
-                    </div>
-                    <div class="form-group">
-                        <label>Platform *</label>
-                        <select id="upload-platform" required>
-                            <option value="YouTube">YouTube</option>
-                            <option value="Instagram">Instagram</option>
-                        </select>
-                    </div>
-                </div>
-                
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Language *</label>
-                        <select id="upload-language" required>
-                            <option value="hindi">Hindi (हिंदी)</option>
-                            <option value="telugu">Telugu (తెలుగు)</option>
-                            <option value="tamil">Tamil (தமிழ்)</option>
-                            <option value="english">English</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Category *</label>
-                        <select id="upload-category" required>
-                            <option value="Education">Education</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Technology">Technology</option>
-                            <option value="Motivation">Motivation</option>
-                            <option value="News">News</option>
-                            <option value="Vlog">Vlog</option>
-                        </select>
-                    </div>
-                </div>
-                
+            <div class="form-group">
+                <label>Video Topic/Prompt *</label>
+                <input type="text" id="manual-topic" placeholder="Ex: AI News Today, Tech Review, Motivation Quote">
+            </div>
+            
+            <div class="form-row">
                 <div class="form-group">
-                    <label>Description *</label>
-                    <textarea id="upload-description" required placeholder="Enter video description"></textarea>
+                    <label>Language</label>
+                    <select id="manual-language">
+                        <option value="hindi">Hindi (हिंदी)</option>
+                        <option value="telugu">Telugu (తెలుగు)</option>
+                        <option value="tamil">Tamil (தமிழ்)</option>
+                        <option value="english">English</option>
+                    </select>
                 </div>
-                
                 <div class="form-group">
-                    <label>Tags (comma separated) *</label>
-                    <input type="text" id="upload-tags" required placeholder="viral, trending, hindi, tech">
-                </div>
-                
-                <div class="form-group">
-                    <label>Video File *</label>
-                    <input type="file" id="upload-file" accept="video/*" required>
-                </div>
-                
-                <button type="submit" class="btn btn-warning" id="upload-btn">
-                    📤 Upload Video
-                </button>
-            </form>
-        </div>
-        
-        <!-- Platform Breakdown -->
-        <div class="grid">
-            <div class="card">
-                <h3>▶️ YouTube Posts</h3>
-                <div class="stat-value" id="yt-posts" style="color: #ff0000;">0</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="yt-progress" style="width: 0%;"></div>
+                    <label>Platform</label>
+                    <select id="manual-platform">
+                        <option value="YouTube">YouTube</option>
+                        <option value="Instagram">Instagram</option>
+                    </select>
                 </div>
             </div>
-            <div class="card">
-                <h3>📸 Instagram Posts</h3>
-                <div class="stat-value" id="ig-posts" style="color: #e4405f;">0</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="ig-progress" style="width: 0%;"></div>
-                </div>
+            
+            <div class="form-group">
+                <label>Custom Instructions (Optional)</label>
+                <textarea id="manual-instructions" placeholder="Ex: Make it funny, Add statistics, Keep it under 60 seconds"></textarea>
             </div>
+            
+            <button class="btn btn-warning" id="manual-btn" onclick="createManualVideo()">
+                📝 Create Manual Video
+            </button>
         </div>
         
-        <!-- Recent Posts -->
-        <div class="card" style="margin-top: 30px;">
-            <h3 style="color: white; margin-bottom: 20px;">📝 Recent Posts (Auto + Manual)</h3>
+        <!-- Recent Videos -->
+        <div class="card">
+            <h3 style="color: white; margin-bottom: 20px;">📝 Recent Videos (Auto + Manual)</h3>
             <div id="posts-list">Loading...</div>
-        </div>
-        
-        <!-- Language Distribution -->
-        <div class="card" style="margin-top: 30px;">
-            <h3 style="color: white; margin-bottom: 20px;">🌍 Language Distribution</h3>
-            <div id="language-stats"></div>
         </div>
     </div>
 
     <script>
-        // ⚠️ REPLACE WITH YOUR HUGGING FACE SPACE URL
         const API_URL = "https://dhanushmolina-ai-free-social-backend.hf.space";
 
         // Load Analytics
@@ -356,37 +266,9 @@
                 document.getElementById('total-posts').innerText = data.total_posts || 0;
                 document.getElementById('auto-posts').innerText = data.auto_posts || 0;
                 document.getElementById('manual-posts').innerText = data.manual_posts || 0;
-                document.getElementById('today-posts').innerText = `${data.today_posts || 0}/3`;
                 document.getElementById('total-views').innerText = (data.total_views || 0).toLocaleString();
                 document.getElementById('subs-gained').innerText = data.subscribers_gained || 0;
                 document.getElementById('followers-gained').innerText = data.followers_gained || 0;
-                document.getElementById('yt-posts').innerText = data.youtube_posts || 0;
-                document.getElementById('ig-posts').innerText = data.instagram_posts || 0;
-                
-                // Today's progress
-                const todayPercent = Math.min((data.today_posts || 0) / 3 * 100, 100);
-                document.getElementById('today-progress').style.width = todayPercent + '%';
-                
-                // Platform progress
-                const total = (data.youtube_posts || 0) + (data.instagram_posts || 0);
-                if (total > 0) {
-                    document.getElementById('yt-progress').style.width = 
-                        ((data.youtube_posts || 0) / total * 100) + '%';
-                    document.getElementById('ig-progress').style.width = 
-                        ((data.instagram_posts || 0) / total * 100) + '%';
-                }
-                
-                // Language stats
-                const langDiv = document.getElementById('language-stats');
-                if (data.languages && Object.keys(data.languages).length > 0) {
-                    langDiv.innerHTML = Object.entries(data.languages).map(([lang, count]) => `
-                        <div style="margin: 10px 0;">
-                            <span class="language-badge lang-${lang}">${lang}</span>
-                            <span>${count} videos</span>
-                        </div>
-                    `).join('');
-                }
-                
             } catch (e) {
                 console.error('Analytics error:', e);
             }
@@ -401,116 +283,9 @@
                 const div = document.getElementById('posts-list');
                 
                 if (posts.length === 0) {
-                    div.innerHTML = '<p style="color: #94a3b8; text-align: center;">No posts yet. Create videos!</p>';
+                    div.innerHTML = '<p style="color: #94a3b8; text-align: center;">No videos yet. Create your first!</p>';
                     return;
                 }
                 
                 div.innerHTML = posts.map(post => `
-                    <div class="post-item post-${post.platform?.toLowerCase() || 'youtube'} post-${post.upload_type || 'auto'}">
-                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
-                            <div>
-                                <strong>${post.topic || post.title}</strong>
-                                <span class="language-badge lang-${post.language}">${post.language}</span>
-                                <span class="upload-type-badge type-${post.upload_type || 'auto'}">
-                                    ${post.upload_type === 'manual' ? '👤 Manual' : '🤖 Auto'}
-                                </span>
-                            </div>
-                            <div style="text-align: right;">
-                                <div style="font-size: 12px; color: #94a3b8;">
-                                    ${new Date(post.created_at).toLocaleDateString()}
-                                </div>
-                                <span class="status-badge status-success">${post.status || 'published'}</span>
-                            </div>
-                        </div>
-                        <div style="margin-top: 10px; font-size: 13px; color: #94a3b8;">
-                            Platform: ${post.platform} | 
-                            Category: ${post.category || 'General'}
-                        </div>
-                    </div>
-                `).join('');
-                
-            } catch (e) {
-                document.getElementById('posts-list').innerHTML = '<p style="color: #ef4444;">Error loading posts</p>';
-            }
-        }
-
-        // Run Daily 3 Videos
-        async function runDaily3Videos() {
-            const btn = document.getElementById('growth-btn');
-            btn.innerHTML = '⏳ AI is Creating 3 Videos...';
-            btn.disabled = true;
-            
-            try {
-                const res = await fetch(`${API_URL}/daily-3-videos`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({auto: true})
-                });
-                
-                const data = await res.json();
-                alert(`✅ Created ${data.videos_created} out of ${data.videos_planned} videos!`);
-                
-                loadAnalytics();
-                loadPosts();
-                
-            } catch (e) {
-                alert('❌ Error: ' + e.message);
-            }
-            
-            btn.innerHTML = '🚀 Create 3 Daily Videos Now';
-            btn.disabled = false;
-        }
-
-        // Manual Upload
-        async function handleManualUpload(event) {
-            event.preventDefault();
-            
-            const btn = document.getElementById('upload-btn');
-            btn.innerHTML = '⏳ Uploading...';
-            btn.disabled = true;
-            
-            const formData = new FormData();
-            formData.append('title', document.getElementById('upload-title').value);
-            formData.append('description', document.getElementById('upload-description').value);
-            formData.append('platform', document.getElementById('upload-platform').value);
-            formData.append('language', document.getElementById('upload-language').value);
-            formData.append('category', document.getElementById('upload-category').value);
-            formData.append('tags', document.getElementById('upload-tags').value);
-            formData.append('video_file', document.getElementById('upload-file').files[0]);
-            
-            try {
-                const res = await fetch(`${API_URL}/manual-upload`, {
-                    method: 'POST',
-                    body: formData
-                });
-                
-                const data = await res.json();
-                
-                if (data.status === 'success') {
-                    alert('✅ Video uploaded successfully!');
-                    document.getElementById('upload-form').reset();
-                    loadAnalytics();
-                    loadPosts();
-                } else {
-                    alert('❌ Upload failed: ' + JSON.stringify(data));
-                }
-                
-            } catch (e) {
-                alert('❌ Error: ' + e.message);
-            }
-            
-            btn.innerHTML = '📤 Upload Video';
-            btn.disabled = false;
-        }
-
-        // Auto-refresh every 30 seconds
-        setInterval(loadAnalytics, 30000);
-        setInterval(loadPosts, 30000);
-        loadAnalytics();
-        loadPosts();
-    </script>
-</body>
-</html>
-
-
-
+                    <div class="post-item post-${post.mode || 'auto'}">
