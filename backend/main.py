@@ -18,7 +18,7 @@ from agents.analytics_agent import AnalyticsAgent
 from memory.memory_manager import MemoryManager
 
 # Initialize App
-app = FastAPI(title="AI Social Media Office - Auto + Manual")
+app = FastAPI(title="AI Social Media Office")
 
 # Enable CORS
 app.add_middleware(
@@ -96,19 +96,11 @@ class ManualVideoRequest(BaseModel):
     custom_instructions: Optional[str] = None
 
 # ============================================
-# AUTOMATIC VIDEO CREATION (Trending Topics)
+# AUTOMATIC VIDEO CREATION
 # ============================================
 @app.post("/auto-create-video")
 async def auto_create_video(request: AutoVideoRequest):
-    """
-    COMPLETE AUTOMATIC WORKFLOW:
-    1. Check Trending Topics
-    2. Select Best Topic
-    3. Generate Script + Title + Description + Tags
-    4. Create AI Video
-    5. Upload to YouTube/Instagram
-    6. Store in Memory
-    """
+    """Complete Automatic Workflow"""
     try:
         if not trend:
             return {'status': 'error', 'message': 'Trend Agent not available'}
@@ -131,7 +123,7 @@ async def auto_create_video(request: AutoVideoRequest):
         if not best_topic:
             return {'status': 'error', 'message': 'No trending topics found'}
         
-        # STEP 3: Generate Complete Content (Script + Title + Description + Tags)
+        # STEP 3: Generate Complete Content
         content_data = content.create_complete_content(
             topic=best_topic['topic'],
             platform=request.platform,
@@ -158,7 +150,7 @@ async def auto_create_video(request: AutoVideoRequest):
                 payload = platform.prepare_instagram(content_data, video_result.get('url', ''))
                 upload_result = platform.upload_instagram(payload)
         
-        # STEP 6: Store in Memory (Learning)
+        # STEP 6: Store in Memory
         if memory:
             memory.save_posted_topic(
                 topic=best_topic['topic'],
@@ -194,18 +186,11 @@ async def auto_create_video(request: AutoVideoRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================
-# MANUAL VIDEO CREATION (User Prompt)
+# MANUAL VIDEO CREATION
 # ============================================
 @app.post("/manual-create-video")
 async def manual_create_video(request: ManualVideoRequest):
-    """
-    COMPLETE MANUAL WORKFLOW:
-    1. User Provides Topic/Prompt
-    2. Generate Script + Title + Description + Tags
-    3. Create AI Video
-    4. Upload to YouTube/Instagram
-    5. Store in Memory
-    """
+    """Complete Manual Workflow"""
     try:
         if not content:
             return {'status': 'error', 'message': 'Content Agent not available'}
@@ -237,7 +222,7 @@ async def manual_create_video(request: ManualVideoRequest):
                 payload = platform.prepare_instagram(content_data, video_result.get('url', ''))
                 upload_result = platform.upload_instagram(payload)
         
-        # STEP 4: Store in Memory (Learning)
+        # STEP 4: Store in Memory
         if memory:
             memory.save_posted_topic(
                 topic=request.topic,
@@ -270,7 +255,7 @@ async def manual_create_video(request: ManualVideoRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 # ============================================
-# MANUAL UPLOAD (Your Own Video File)
+# MANUAL UPLOAD (Video File)
 # ============================================
 @app.post("/manual-upload")
 async def manual_upload_video(
@@ -385,8 +370,52 @@ async def get_posts(limit: int = 50):
 
 @app.get("/health")
 async def health():
+    """Health Check Endpoint"""
     return {
         'status': 'online',
         'ceo': 'active' if ceo else 'inactive',
         'auto_video': 'enabled',
-        'manual_video':
+        'manual_video': 'enabled',
+        'memory': 'mock' if (memory and memory.use_mock) else 'mongodb',
+        'goal': 'Auto Trending + Manual Prompt Videos',
+        'agents': {
+            'ceo': 'ready' if ceo else 'not initialized',
+            'content': 'ready' if content else 'not initialized',
+            'video': 'ready' if video else 'not initialized',
+            'platform': 'ready' if platform else 'not initialized',
+            'trend': 'ready' if trend else 'not initialized',
+            'analytics': 'ready' if analytics else 'not initialized'
+        }
+    }
+
+# ============================================
+# BACKGROUND AUTOMATION
+# ============================================
+async def auto_scheduler():
+    """Auto-create videos daily at 9 AM"""
+    while True:
+        now = datetime.now()
+        if now.hour == 9 and now.minute == 0:
+            try:
+                for lang in ['hindi', 'telugu', 'english']:
+                    await auto_create_video(AutoVideoRequest(
+                        category='all',
+                        language=lang,
+                        platform='YouTube'
+                    ))
+            except Exception as e:
+                print(f"Scheduled auto video failed: {e}")
+        await asyncio.sleep(60)
+
+@app.on_event("startup")
+async def startup_event():
+    """Startup Event"""
+    if trend and content:
+        asyncio.create_task(auto_scheduler())
+        print("[SYSTEM] ✅ Auto + Manual Video Creation Enabled")
+    else:
+        print("[SYSTEM] ⚠️ Some agents not available")
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", host="0.0.0.0", port=7860)
