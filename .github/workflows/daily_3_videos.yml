@@ -11,6 +11,6 @@ jobs:
     steps:
       - name: Trigger 3 Daily Videos
         run: |
-          curl -X POST https://huggingface.co/spaces/dhanushmolina/ai-free-social-backend/daily-3-videos \
+          curl -X POST https://dhanushmolina-ai-free-social-backend.hf.space/daily-3-videos \
           -H "Content-Type: application/json" \
           -d '{"auto": true}'
