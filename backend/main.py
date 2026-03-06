@@ -31,59 +31,52 @@ app.add_middleware(
 os.makedirs('storage/uploads', exist_ok=True)
 
 # Initialize All Agents with Error Handling
+ceo = None
+content = None
+video = None
+platform = None
+analytics = None
+memory = None
+
 try:
     ceo = CEOAgent()
     print("[MAIN] ✅ CEO Agent initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ CEO Agent init failed: {e}")
-    ceo = None
 
 try:
     content = ContentAgent()
     print("[MAIN] ✅ Content Agent initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ Content Agent init failed: {e}")
-    content = None
 
 try:
     video = VideoAgent()
     print("[MAIN] ✅ Video Agent initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ Video Agent init failed: {e}")
-    video = None
 
 try:
     platform = PlatformAgent()
     print("[MAIN] ✅ Platform Agent initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ Platform Agent init failed: {e}")
-    platform = None
 
 try:
     analytics = AnalyticsAgent()
     print("[MAIN] ✅ Analytics Agent initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ Analytics Agent init failed: {e}")
-    analytics = None
 
 try:
     memory = MemoryManager()
     print("[MAIN] ✅ Memory Manager initialized")
 except Exception as e:
     print(f"[MAIN] ⚠️ Memory Manager init failed: {e}")
-    memory = None
 
 # Request Models
 class GrowthRequest(BaseModel):
     auto: bool = True
-
-class ManualUploadRequest(BaseModel):
-    title: str
-    description: str
-    platform: str
-    language: str
-    category: str
-    tags: List[str]
 
 # CEO DAILY 3 VIDEOS WORKFLOW
 @app.post("/daily-3-videos")
@@ -108,13 +101,12 @@ async def create_daily_3_videos():
         for video_plan in daily_plan.get('daily_plan', []):
             try:
                 # 3. Check Uniqueness (Memory)
+                is_unique = True
                 if memory:
                     is_unique = memory.check_topic_uniqueness(
                         video_plan['topic'],
                         video_plan['platform']
                     )
-                else:
-                    is_unique = True
                 
                 if not is_unique:
                     results.append({
@@ -126,25 +118,24 @@ async def create_daily_3_videos():
                     continue
                 
                 # 4. Write Human Script
+                script = {'script': 'Mock script', 'platform': video_plan['platform'], 'language': video_plan['language']}
                 if content:
                     script = content.write_script(
                         topic=video_plan['topic'],
                         platform=video_plan['platform'],
                         language=video_plan['language']
                     )
-                else:
-                    script = {'script': 'Mock script', 'platform': video_plan['platform'], 'language': video_plan['language']}
                 
                 # 5. Create Video
+                video_result = {'status': 'mock', 'url': ''}
                 if video:
                     video_result = video.create_avatar_video(
                         script=script['script'],
                         language=video_plan['language']
                     )
-                else:
-                    video_result = {'status': 'mock', 'url': ''}
                 
                 # 6. Upload to Platform
+                upload_result = {'status': 'mock', 'platform': video_plan['platform']}
                 if platform:
                     if video_plan['platform'] == 'YouTube':
                         payload = platform.prepare_youtube(script, video_result.get('url', ''))
@@ -152,8 +143,6 @@ async def create_daily_3_videos():
                     else:
                         payload = platform.prepare_instagram(script, video_result.get('url', ''))
                         upload_result = platform.upload_instagram(payload)
-                else:
-                    upload_result = {'status': 'mock', 'platform': video_plan['platform']}
                 
                 # 7. Store in Memory (Learning)
                 if memory:
@@ -224,24 +213,26 @@ async def manual_upload_video(
         # Prepare for platform
         tags_list = [tag.strip() for tag in tags.split(',')]
         
-        if platform.lower() == 'youtube':
-            payload = {
-                'title': title,
-                'description': description,
-                'tags': tags_list,
-                'category': category,
-                'language': language,
-                'video_path': file_path
-            }
-            upload_result = platform.upload_youtube(payload) if platform else {'status': 'mock'}
-        else:
-            payload = {
-                'caption': f"{title}\n\n{description}",
-                'hashtags': tags_list,
-                'language': language,
-                'video_path': file_path
-            }
-            upload_result = platform.upload_instagram(payload) if platform else {'status': 'mock'}
+        upload_result = {'status': 'mock'}
+        if platform:
+            if platform.lower() == 'youtube':
+                payload = {
+                    'title': title,
+                    'description': description,
+                    'tags': tags_list,
+                    'category': category,
+                    'language': language,
+                    'video_path': file_path
+                }
+                upload_result = platform.upload_youtube(payload)
+            else:
+                payload = {
+                    'caption': f"{title}\n\n{description}",
+                    'hashtags': tags_list,
+                    'language': language,
+                    'video_path': file_path
+                }
+                upload_result = platform.upload_instagram(payload)
         
         # Store in Memory
         if memory:
