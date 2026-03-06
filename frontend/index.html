@@ -3,174 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎬 AI Video Office - Auto + Manual</title>
+    <title>🎬 AI Cloud Office - YouTube Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: #0f172a; 
-            color: white; 
-            font-family: Arial, sans-serif; 
-            padding: 20px; 
-        }
+        body { background: #0f172a; color: white; font-family: Arial, sans-serif; padding: 20px; }
         .container { max-width: 1400px; margin: 0 auto; }
         h1 { color: #3b82f6; margin-bottom: 30px; text-align: center; }
-        
-        .grid { 
-            display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
-            gap: 20px; 
-            margin-bottom: 30px; 
-        }
-        
-        .card { 
-            background: #1e293b; 
-            padding: 25px; 
-            border-radius: 15px; 
-            border: 1px solid #334155;
-        }
-        
-        .card h3 { 
-            color: #94a3b8; 
-            font-size: 14px; 
-            margin-bottom: 10px; 
-        }
-        
-        .stat-value { 
-            font-size: 36px; 
-            font-weight: bold; 
-            color: #22c55e; 
-        }
-        
-        .btn { 
-            padding: 15px 30px; 
-            background: #3b82f6; 
-            color: white; 
-            border: none; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: 16px;
-            margin: 10px 5px;
-        }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .card { background: #1e293b; padding: 25px; border-radius: 15px; border: 1px solid #334155; }
+        .card h3 { color: #94a3b8; font-size: 14px; margin-bottom: 10px; }
+        .stat-value { font-size: 36px; font-weight: bold; color: #22c55e; }
+        .btn { padding: 15px 30px; background: #3b82f6; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px; margin: 10px 5px; }
         .btn:hover { background: #2563eb; }
         .btn-success { background: #22c55e; }
-        .btn-success:hover { background: #16a34a; }
         .btn-warning { background: #f59e0b; }
-        .btn-warning:hover { background: #d97706; }
         .btn:disabled { background: #64748b; cursor: not-allowed; }
-        
-        .section {
-            background: #1e293b;
-            padding: 25px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            border: 2px solid #334155;
-        }
-        
-        .section h2 {
-            color: white;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .form-group {
-            margin-bottom: 15px;
-        }
-        
-        .form-group label {
-            display: block;
-            color: #94a3b8;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-            background: #0f172a;
-            color: white;
-            font-size: 14px;
-        }
-        
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .post-item { 
-            background: #0f172a; 
-            padding: 15px; 
-            border-radius: 10px; 
-            margin-bottom: 10px;
-            border-left: 4px solid #3b82f6;
-        }
+        .section { background: #1e293b; padding: 25px; border-radius: 15px; margin-bottom: 30px; border: 2px solid #334155; }
+        .section h2 { color: white; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; color: #94a3b8; margin-bottom: 5px; font-size: 14px; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 14px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .post-item { background: #0f172a; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
         .post-auto { border-left-color: #22c55e; }
         .post-manual { border-left-color: #f59e0b; }
-        
-        .mode-badge {
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 11px;
-            margin-left: 10px;
-        }
+        .youtube-link { display: inline-block; padding: 8px 15px; background: #ff0000; color: white; text-decoration: none; border-radius: 5px; font-size: 12px; margin-top: 10px; }
+        .youtube-link:hover { background: #cc0000; }
+        .mode-badge { padding: 4px 12px; border-radius: 15px; font-size: 11px; margin-left: 10px; }
         .mode-auto { background: #22c55e; }
         .mode-manual { background: #f59e0b; }
-        
-        .language-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 15px;
-            font-size: 12px;
-            margin: 3px;
-        }
+        .language-badge { display: inline-block; padding: 4px 12px; border-radius: 15px; font-size: 12px; margin: 3px; }
         .lang-hindi { background: #ff9933; }
         .lang-telugu { background: #0066cc; }
         .lang-english { background: #3b82f6; }
+        .status-badge { padding: 4px 12px; border-radius: 15px; font-size: 11px; }
+        .status-uploaded { background: #22c55e; }
+        .status-ready { background: #f59e0b; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎬 AI Video Office - Auto + Manual</h1>
-        <p style="text-align: center; color: #94a3b8; margin-bottom: 30px;">
-            Automatic Trending Videos + Manual Prompt Videos | YouTube & Instagram
-        </p>
+        <h1>🎬 AI Cloud Office - YouTube Dashboard</h1>
+        <p style="text-align: center; color: #94a3b8; margin-bottom: 30px;">Auto Trending + Manual Prompt | Real YouTube Upload</p>
         
-        <!-- Analytics -->
         <div class="grid">
             <div class="card">
                 <h3>🎬 Total Videos</h3>
                 <div class="stat-value" id="total-posts">0</div>
-                <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;">
-                    <span id="auto-posts">0</span> Auto | <span id="manual-posts">0</span> Manual
-                </div>
+                <div style="font-size: 12px; color: #94a3b8; margin-top: 5px;"><span id="auto-posts">0</span> Auto | <span id="manual-posts">0</span> Manual</div>
             </div>
             <div class="card">
-                <h3>👁️ Total Views</h3>
-                <div class="stat-value" id="total-views">0</div>
+                <h3>▶️ YouTube Videos</h3>
+                <div class="stat-value" id="youtube-posts">0</div>
             </div>
             <div class="card">
-                <h3>🔔 Subscribers (YT)</h3>
-                <div class="stat-value" id="subs-gained">0</div>
+                <h3>📸 Instagram Posts</h3>
+                <div class="stat-value" id="instagram-posts">0</div>
             </div>
             <div class="card">
-                <h3>❤️ Followers (IG)</h3>
-                <div class="stat-value" id="followers-gained">0</div>
+                <h3>🌍 Languages</h3>
+                <div class="stat-value" id="language-count">0</div>
             </div>
         </div>
         
-        <!-- AUTOMATIC VIDEO CREATION -->
         <div class="section">
-            <h2>🤖 Automatic Video (Trending Topics)</h2>
-            <p style="color: #94a3b8; margin-bottom: 20px;">
-                AI checks trending topics → Creates video → Uploads automatically with title, description, tags
-            </p>
-            
+            <h2>🤖 Automatic Video (Trending)</h2>
+            <p style="color: #94a3b8; margin-bottom: 20px;">AI finds trending topic → Creates video → Uploads to YouTube with title, description, tags</p>
             <div class="form-row">
                 <div class="form-group">
                     <label>Category</label>
@@ -192,7 +90,6 @@
                     </select>
                 </div>
             </div>
-            
             <div class="form-group">
                 <label>Platform</label>
                 <select id="auto-platform">
@@ -200,24 +97,16 @@
                     <option value="Instagram">Instagram</option>
                 </select>
             </div>
-            
-            <button class="btn btn-success" id="auto-btn" onclick="createAutoVideo()">
-                🚀 Create Auto Video (Trending)
-            </button>
+            <button class="btn btn-success" id="auto-btn" onclick="createAutoVideo()">🚀 Create Auto Video</button>
         </div>
         
-        <!-- MANUAL VIDEO CREATION -->
         <div class="section">
             <h2>✍️ Manual Video (Your Prompt)</h2>
-            <p style="color: #94a3b8; margin-bottom: 20px;">
-                You give topic → AI creates everything → Uploads automatically
-            </p>
-            
+            <p style="color: #94a3b8; margin-bottom: 20px;">You give topic → AI creates everything → Uploads to YouTube</p>
             <div class="form-group">
                 <label>Video Topic/Prompt *</label>
-                <input type="text" id="manual-topic" placeholder="Ex: AI News Today, Tech Review, Motivation Quote">
+                <input type="text" id="manual-topic" placeholder="Ex: AI News Today, Tech Review, Motivation">
             </div>
-            
             <div class="form-row">
                 <div class="form-group">
                     <label>Language</label>
@@ -236,91 +125,74 @@
                     </select>
                 </div>
             </div>
-            
             <div class="form-group">
                 <label>Custom Instructions (Optional)</label>
-                <textarea id="manual-instructions" placeholder="Ex: Make it funny, Add statistics, Keep it under 60 seconds"></textarea>
+                <textarea id="manual-instructions" placeholder="Ex: Make it funny, Add statistics"></textarea>
             </div>
-            
-            <button class="btn btn-warning" id="manual-btn" onclick="createManualVideo()">
-                📝 Create Manual Video
-            </button>
+            <button class="btn btn-warning" id="manual-btn" onclick="createManualVideo()">📝 Create Manual Video</button>
         </div>
         
-        <!-- Recent Videos -->
         <div class="card">
-            <h3 style="color: white; margin-bottom: 20px;">📝 Recent Videos (Auto + Manual)</h3>
+            <h3 style="color: white; margin-bottom: 20px;">📺 Uploaded Videos (With YouTube Links)</h3>
             <div id="posts-list">Loading...</div>
         </div>
     </div>
 
     <script>
-        // ✅ CORRECT API URL (Your Hugging Face Space)
         const API_URL = "https://dhanushmolina-ai-free-social-backend.hf.space";
 
-        // Load Analytics
         async function loadAnalytics() {
             try {
                 const res = await fetch(`${API_URL}/analytics`);
                 const data = await res.json();
-                
                 document.getElementById('total-posts').innerText = data.total_posts || 0;
                 document.getElementById('auto-posts').innerText = data.auto_posts || 0;
                 document.getElementById('manual-posts').innerText = data.manual_posts || 0;
-                document.getElementById('total-views').innerText = (data.total_views || 0).toLocaleString();
-                document.getElementById('subs-gained').innerText = data.subscribers_gained || 0;
-                document.getElementById('followers-gained').innerText = data.followers_gained || 0;
-            } catch (e) {
-                console.error('Analytics error:', e);
-            }
+                document.getElementById('youtube-posts').innerText = data.youtube_posts || 0;
+                document.getElementById('instagram-posts').innerText = data.instagram_posts || 0;
+                document.getElementById('language-count').innerText = Object.keys(data.languages || {}).length;
+            } catch (e) { console.error('Analytics error:', e); }
         }
 
-        // Load Posts
         async function loadPosts() {
             try {
                 const res = await fetch(`${API_URL}/posts?limit=20`);
                 const posts = await res.json();
-                
                 const div = document.getElementById('posts-list');
-                
                 if (posts.length === 0) {
                     div.innerHTML = '<p style="color: #94a3b8; text-align: center;">No videos yet. Create your first!</p>';
                     return;
                 }
-                
-                div.innerHTML = posts.map(post => `
+                div.innerHTML = posts.map(post => {
+                    const youtubeLink = post.youtube_link || post.upload_result?.youtube_link || '';
+                    const uploadStatus = post.upload_result?.status || 'ready';
+                    return `
                     <div class="post-item post-${post.mode || 'auto'}">
                         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
                             <div>
                                 <strong>${post.topic || post.title}</strong>
                                 <span class="language-badge lang-${post.language}">${post.language}</span>
-                                <span class="mode-badge mode-${post.mode || 'auto'}">
-                                    ${post.mode === 'manual' ? '✍️ Manual' : '🤖 Auto'}
-                                </span>
+                                <span class="mode-badge mode-${post.mode || 'auto'}">${post.mode === 'manual' ? '✍️ Manual' : '🤖 Auto'}</span>
+                                <span class="status-badge status-${uploadStatus === 'uploaded' ? 'uploaded' : 'ready'}">${uploadStatus === 'uploaded' ? '✅ Uploaded' : '⏳ Ready'}</span>
                             </div>
                             <div style="text-align: right;">
-                                <div style="font-size: 12px; color: #94a3b8;">
-                                    ${new Date(post.created_at).toLocaleDateString()}
-                                </div>
-                                <div style="font-size: 12px; color: #22c55e;">
-                                    ${post.platform}
-                                </div>
+                                <div style="font-size: 12px; color: #94a3b8;">${new Date(post.created_at).toLocaleDateString()}</div>
+                                <div style="font-size: 12px; color: #22c55e;">${post.platform}</div>
                             </div>
                         </div>
+                        ${youtubeLink ? `<a href="${youtubeLink}" target="_blank" class="youtube-link">▶️ Watch on YouTube</a>` : ''}
                     </div>
-                `).join('');
-                
+                    `;
+                }).join('');
             } catch (e) {
                 document.getElementById('posts-list').innerHTML = '<p style="color: #ef4444;">Error loading videos</p>';
             }
         }
 
-        // ✅ CREATE AUTO VIDEO FUNCTION (Fixed)
         async function createAutoVideo() {
             const btn = document.getElementById('auto-btn');
-            btn.innerHTML = '⏳ AI Checking Trends & Creating...';
+            btn.innerHTML = '⏳ AI Creating...';
             btn.disabled = true;
-            
             try {
                 const res = await fetch(`${API_URL}/auto-create-video`, {
                     method: 'POST',
@@ -331,34 +203,31 @@
                         platform: document.getElementById('auto-platform').value
                     })
                 });
-                
                 const data = await res.json();
-                
                 if (data.status === 'success') {
-                    alert(`✅ Auto Video Created!\n\nTopic: ${data.topic}\nTrend Reason: ${data.trend_reason}\nTitle: ${data.content.title}`);
+                    let msg = `✅ Video Created!\n\nTopic: ${data.topic}\nTitle: ${data.content.title}`;
+                    if (data.youtube_link) {
+                        msg += `\n\n🎬 YouTube: ${data.youtube_link}`;
+                    }
+                    alert(msg);
                     loadAnalytics();
                     loadPosts();
                 } else {
                     alert('❌ Error: ' + (data.message || 'Unknown error'));
                 }
-                
             } catch (e) {
                 alert('❌ Error: ' + e.message);
             }
-            
-            btn.innerHTML = '🚀 Create Auto Video (Trending)';
+            btn.innerHTML = '🚀 Create Auto Video';
             btn.disabled = false;
         }
 
-        // ✅ CREATE MANUAL VIDEO FUNCTION (Fixed)
         async function createManualVideo() {
             const topic = document.getElementById('manual-topic').value;
             if (!topic) return alert('Please enter a topic');
-            
             const btn = document.getElementById('manual-btn');
-            btn.innerHTML = '⏳ AI Creating Everything...';
+            btn.innerHTML = '⏳ AI Creating...';
             btn.disabled = true;
-            
             try {
                 const res = await fetch(`${API_URL}/manual-create-video`, {
                     method: 'POST',
@@ -370,26 +239,25 @@
                         custom_instructions: document.getElementById('manual-instructions').value
                     })
                 });
-                
                 const data = await res.json();
-                
                 if (data.status === 'success') {
-                    alert(`✅ Manual Video Created!\n\nTopic: ${data.topic}\nTitle: ${data.content.title}\nTags: ${data.content.tags ? data.content.tags.join(', ') : 'N/A'}`);
+                    let msg = `✅ Video Created!\n\nTopic: ${data.topic}\nTitle: ${data.content.title}`;
+                    if (data.youtube_link) {
+                        msg += `\n\n🎬 YouTube: ${data.youtube_link}`;
+                    }
+                    alert(msg);
                     loadAnalytics();
                     loadPosts();
                 } else {
                     alert('❌ Error: ' + (data.message || 'Unknown error'));
                 }
-                
             } catch (e) {
                 alert('❌ Error: ' + e.message);
             }
-            
             btn.innerHTML = '📝 Create Manual Video';
             btn.disabled = false;
         }
 
-        // Auto-refresh
         setInterval(loadAnalytics, 30000);
         setInterval(loadPosts, 30000);
         loadAnalytics();
