@@ -255,6 +255,7 @@
     </div>
 
     <script>
+        // ✅ CORRECT API URL (Your Hugging Face Space)
         const API_URL = "https://dhanushmolina-ai-free-social-backend.hf.space";
 
         // Load Analytics
@@ -289,3 +290,110 @@
                 
                 div.innerHTML = posts.map(post => `
                     <div class="post-item post-${post.mode || 'auto'}">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                            <div>
+                                <strong>${post.topic || post.title}</strong>
+                                <span class="language-badge lang-${post.language}">${post.language}</span>
+                                <span class="mode-badge mode-${post.mode || 'auto'}">
+                                    ${post.mode === 'manual' ? '✍️ Manual' : '🤖 Auto'}
+                                </span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 12px; color: #94a3b8;">
+                                    ${new Date(post.created_at).toLocaleDateString()}
+                                </div>
+                                <div style="font-size: 12px; color: #22c55e;">
+                                    ${post.platform}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                
+            } catch (e) {
+                document.getElementById('posts-list').innerHTML = '<p style="color: #ef4444;">Error loading videos</p>';
+            }
+        }
+
+        // ✅ CREATE AUTO VIDEO FUNCTION (Fixed)
+        async function createAutoVideo() {
+            const btn = document.getElementById('auto-btn');
+            btn.innerHTML = '⏳ AI Checking Trends & Creating...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_URL}/auto-create-video`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        category: document.getElementById('auto-category').value,
+                        language: document.getElementById('auto-language').value,
+                        platform: document.getElementById('auto-platform').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    alert(`✅ Auto Video Created!\n\nTopic: ${data.topic}\nTrend Reason: ${data.trend_reason}\nTitle: ${data.content.title}`);
+                    loadAnalytics();
+                    loadPosts();
+                } else {
+                    alert('❌ Error: ' + (data.message || 'Unknown error'));
+                }
+                
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+            
+            btn.innerHTML = '🚀 Create Auto Video (Trending)';
+            btn.disabled = false;
+        }
+
+        // ✅ CREATE MANUAL VIDEO FUNCTION (Fixed)
+        async function createManualVideo() {
+            const topic = document.getElementById('manual-topic').value;
+            if (!topic) return alert('Please enter a topic');
+            
+            const btn = document.getElementById('manual-btn');
+            btn.innerHTML = '⏳ AI Creating Everything...';
+            btn.disabled = true;
+            
+            try {
+                const res = await fetch(`${API_URL}/manual-create-video`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        topic: topic,
+                        language: document.getElementById('manual-language').value,
+                        platform: document.getElementById('manual-platform').value,
+                        custom_instructions: document.getElementById('manual-instructions').value
+                    })
+                });
+                
+                const data = await res.json();
+                
+                if (data.status === 'success') {
+                    alert(`✅ Manual Video Created!\n\nTopic: ${data.topic}\nTitle: ${data.content.title}\nTags: ${data.content.tags ? data.content.tags.join(', ') : 'N/A'}`);
+                    loadAnalytics();
+                    loadPosts();
+                } else {
+                    alert('❌ Error: ' + (data.message || 'Unknown error'));
+                }
+                
+            } catch (e) {
+                alert('❌ Error: ' + e.message);
+            }
+            
+            btn.innerHTML = '📝 Create Manual Video';
+            btn.disabled = false;
+        }
+
+        // Auto-refresh
+        setInterval(loadAnalytics, 30000);
+        setInterval(loadPosts, 30000);
+        loadAnalytics();
+        loadPosts();
+    </script>
+</body>
+</html>
