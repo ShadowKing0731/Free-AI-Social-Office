@@ -3,14 +3,13 @@ import requests
 from datetime import datetime
 
 class VideoAgent:
-    """Creates Human-Type AI Videos (FREE Methods)"""
+    """Creates AI Videos with Avatar + Voice"""
     
     def __init__(self):
-        # FREE Options (No Payment Required)
-        self.did_api_key = os.getenv('D_ID_API_KEY', '')  # Free trial credits
-        self.pictory_api_key = os.getenv('PICTORY_API_KEY', '')  # Free trial
-        
-    def create_avatar_video(self, script, language):
+        self.d_id_api_key = os.getenv('D_ID_API_KEY', '')
+        self.heygen_api_key = os.getenv('HEYGEN_API_KEY', '')
+    
+    def create_avatar_video(self, script, language='hindi'):
         """Create video with AI human avatar"""
         
         # Language to Voice Mapping
@@ -21,55 +20,62 @@ class VideoAgent:
             'english': 'en-US-standard'
         }
         
-        try:
-            # D-ID API (Free Trial - 20 credits)
-            headers = {
-                'Authorization': f'Basic {self.did_api_key}',
-                'Content-Type': 'application/json'
-            }
-            
-            payload = {
-                "source_url": "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/avatar.jpg",
-                "script": {
-                    "type": "text",
-                    "input": script[:500],  # D-ID has character limit
-                    "provider": {
-                        "type": "microsoft",
-                        "voice_id": voice_map.get(language, 'en-US-standard')
+        # Use D-ID API (Free Trial)
+        if self.d_id_api_key:
+            try:
+                headers = {
+                    'Authorization': f'Basic {self.d_id_api_key}',
+                    'Content-Type': 'application/json'
+                }
+                
+                payload = {
+                    "source_url": "https://d-id-public-bucket.s3.us-west-2.amazonaws.com/avatar.jpg",
+                    "script": {
+                        "type": "text",
+                        "input": script[:500],  # D-ID character limit
+                        "provider": {
+                            "type": "microsoft",
+                            "voice_id": voice_map.get(language, 'en-US-standard')
+                        }
                     }
                 }
-            }
-            
-            response = requests.post(
-                'https://api.d-id.com/talks',
-                headers=headers,
-                json=payload
-            )
-            
-            talk_id = response.json().get('id', '')
-            
-            return {
-                'status': 'processing',
-                'talk_id': talk_id,
-                'language': language,
-                'created_at': datetime.now().isoformat(),
-                'method': 'D-ID Free Trial'
-            }
-            
-        except Exception as e:
-            # FALLBACK: Return script for manual video creation
-            return {
-                'status': 'fallback',
-                'error': str(e),
-                'script': script,
-                'method': 'Manual creation required',
-                'free_alternative': 'Use Canva or CapCut for free video creation'
-            }
+                
+                response = requests.post(
+                    'https://api.d-id.com/talks',
+                    headers=headers,
+                    json=payload
+                )
+                
+                talk_id = response.json().get('id', '')
+                
+                return {
+                    'status': 'processing',
+                    'talk_id': talk_id,
+                    'language': language,
+                    'created_at': datetime.now().isoformat(),
+                    'method': 'D-ID'
+                }
+                
+            except Exception as e:
+                return self._create_mock_video(script, language, str(e))
+        else:
+            return self._create_mock_video(script, language, 'No D-ID API key')
+    
+    def _create_mock_video(self, script, language, reason=''):
+        """Mock video creation for testing"""
+        return {
+            'status': 'mock',
+            'url': 'https://example.com/video.mp4',
+            'language': language,
+            'created_at': datetime.now().isoformat(),
+            'method': 'Mock',
+            'note': reason
+        }
     
     def check_video_status(self, talk_id):
-        """Check if D-ID video is ready"""
+        """Check if video is ready"""
         try:
-            headers = {'Authorization': f'Basic {self.did_api_key}'}
+            headers = {'Authorization': f'Basic {self.d_id_api_key}'}
             response = requests.get(
                 f'https://api.d-id.com/talks/{talk_id}',
                 headers=headers
