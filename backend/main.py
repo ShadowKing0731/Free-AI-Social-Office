@@ -6,19 +6,21 @@ from pydantic import BaseModel
 from typing import List, Optional
 from datetime import datetime
 import shutil
+import json
 
 # Import All Agents
 from agents.ceo_agent import CEOAgent
 from agents.content_agent import ContentAgent
 from agents.video_agent import VideoAgent
 from agents.platform_agent import PlatformAgent
+from agents.trend_agent import TrendAgent
 from agents.analytics_agent import AnalyticsAgent
 from memory.memory_manager import MemoryManager
 
 # Initialize App
-app = FastAPI(title="AI Free Social Media Office")
+app = FastAPI(title="AI Social Media Office - Auto + Manual")
 
-# Enable CORS - Allow ALL Origins
+# Enable CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,14 +29,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create storage directory for manual uploads
+# Create storage directory
 os.makedirs('storage/uploads', exist_ok=True)
 
-# Initialize All Agents with Error Handling
+# Initialize All Agents
 ceo = None
 content = None
 video = None
 platform = None
+trend = None
 analytics = None
 memory = None
 
@@ -63,6 +66,12 @@ except Exception as e:
     print(f"[MAIN] ⚠️ Platform Agent init failed: {e}")
 
 try:
+    trend = TrendAgent()
+    print("[MAIN] ✅ Trend Agent initialized")
+except Exception as e:
+    print(f"[MAIN] ⚠️ Trend Agent init failed: {e}")
+
+try:
     analytics = AnalyticsAgent()
     print("[MAIN] ✅ Analytics Agent initialized")
 except Exception as e:
@@ -75,124 +84,194 @@ except Exception as e:
     print(f"[MAIN] ⚠️ Memory Manager init failed: {e}")
 
 # Request Models
-class GrowthRequest(BaseModel):
-    auto: bool = True
+class AutoVideoRequest(BaseModel):
+    category: str = 'all'
+    language: str = 'hindi'
+    platform: str = 'YouTube'
 
-# CEO DAILY 3 VIDEOS WORKFLOW
-@app.post("/daily-3-videos")
-async def create_daily_3_videos():
-    """Complete Autonomous Daily Cycle"""
+class ManualVideoRequest(BaseModel):
+    topic: str
+    language: str = 'hindi'
+    platform: str = 'YouTube'
+    custom_instructions: Optional[str] = None
+
+# ============================================
+# AUTOMATIC VIDEO CREATION (Trending Topics)
+# ============================================
+@app.post("/auto-create-video")
+async def auto_create_video(request: AutoVideoRequest):
+    """
+    COMPLETE AUTOMATIC WORKFLOW:
+    1. Check Trending Topics
+    2. Select Best Topic
+    3. Generate Script + Title + Description + Tags
+    4. Create AI Video
+    5. Upload to YouTube/Instagram
+    6. Store in Memory
+    """
     try:
-        if not ceo:
-            return {
-                'status': 'error',
-                'message': 'CEO Agent not initialized. Check GROQ_API_KEY secret.',
-                'videos_planned': 0,
-                'videos_created': 0,
-                'details': []
-            }
+        if not trend:
+            return {'status': 'error', 'message': 'Trend Agent not available'}
         
-        # 1. CEO Plans 3 Daily Videos
-        daily_plan = ceo.plan_daily_3_videos()
+        if not content:
+            return {'status': 'error', 'message': 'Content Agent not available'}
         
-        results = []
+        # STEP 1: Get Trending Topics
+        trending_data = trend.get_trending_topics(
+            category=request.category,
+            language=request.language
+        )
         
-        # 2. Execute for Each of 3 Videos
-        for video_plan in daily_plan.get('daily_plan', []):
-            try:
-                # 3. Check Uniqueness (Memory)
-                is_unique = True
-                if memory:
-                    is_unique = memory.check_topic_uniqueness(
-                        video_plan['topic'],
-                        video_plan['platform']
-                    )
-                
-                if not is_unique:
-                    results.append({
-                        'video_number': video_plan['video_number'],
-                        'topic': video_plan['topic'],
-                        'status': 'skipped',
-                        'reason': 'Topic already posted recently'
-                    })
-                    continue
-                
-                # 4. Write Human Script
-                script = {'script': 'Mock script', 'platform': video_plan['platform'], 'language': video_plan['language']}
-                if content:
-                    script = content.write_script(
-                        topic=video_plan['topic'],
-                        platform=video_plan['platform'],
-                        language=video_plan['language']
-                    )
-                
-                # 5. Create Video
-                video_result = {'status': 'mock', 'url': ''}
-                if video:
-                    video_result = video.create_avatar_video(
-                        script=script['script'],
-                        language=video_plan['language']
-                    )
-                
-                # 6. Upload to Platform
-                upload_result = {'status': 'mock', 'platform': video_plan['platform']}
-                if platform:
-                    if video_plan['platform'] == 'YouTube':
-                        payload = platform.prepare_youtube(script, video_result.get('url', ''))
-                        upload_result = platform.upload_youtube(payload)
-                    else:
-                        payload = platform.prepare_instagram(script, video_result.get('url', ''))
-                        upload_result = platform.upload_instagram(payload)
-                
-                # 7. Store in Memory (Learning)
-                if memory:
-                    memory.save_posted_topic(
-                        topic=video_plan['topic'],
-                        platform=video_plan['platform'],
-                        language=video_plan['language']
-                    )
-                    
-                    memory.save_auto_post({
-                        'topic': video_plan['topic'],
-                        'platform': video_plan['platform'],
-                        'language': video_plan['language'],
-                        'category': video_plan.get('category', 'General'),
-                        'script': script.get('script', ''),
-                        'video': video_result,
-                        'upload_result': upload_result,
-                        'reason': video_plan.get('reason', ''),
-                        'target_views': video_plan.get('target_views', 0),
-                        'video_number': video_plan['video_number']
-                    })
-                
-                results.append({
-                    'video_number': video_plan['video_number'],
-                    'topic': video_plan['topic'],
-                    'platform': video_plan['platform'],
-                    'language': video_plan['language'],
-                    'status': upload_result.get('status', 'unknown'),
-                    'reason': video_plan.get('reason', '')
-                })
-                
-            except Exception as e:
-                results.append({
-                    'video_number': video_plan.get('video_number', 'unknown'),
-                    'topic': video_plan.get('topic', 'unknown'),
-                    'error': str(e)
-                })
+        # STEP 2: Select Best Topic
+        best_topic = trend.select_best_topic(
+            trending_data.get('topics', []),
+            platform=request.platform
+        )
+        
+        if not best_topic:
+            return {'status': 'error', 'message': 'No trending topics found'}
+        
+        # STEP 3: Generate Complete Content (Script + Title + Description + Tags)
+        content_data = content.create_complete_content(
+            topic=best_topic['topic'],
+            platform=request.platform,
+            language=request.language,
+            auto_mode=True
+        )
+        
+        # STEP 4: Create AI Video
+        video_result = {'status': 'mock', 'url': ''}
+        if video:
+            script_text = content_data.get('content', {}).get('script', {}).get('full_script', '')
+            video_result = video.create_avatar_video(
+                script=script_text,
+                language=request.language
+            )
+        
+        # STEP 5: Upload to Platform
+        upload_result = {'status': 'mock', 'platform': request.platform}
+        if platform:
+            if request.platform == 'YouTube':
+                payload = platform.prepare_youtube(content_data, video_result.get('url', ''))
+                upload_result = platform.upload_youtube(payload)
+            else:
+                payload = platform.prepare_instagram(content_data, video_result.get('url', ''))
+                upload_result = platform.upload_instagram(payload)
+        
+        # STEP 6: Store in Memory (Learning)
+        if memory:
+            memory.save_posted_topic(
+                topic=best_topic['topic'],
+                platform=request.platform,
+                language=request.language
+            )
+            
+            memory.save_auto_post({
+                'topic': best_topic['topic'],
+                'platform': request.platform,
+                'language': request.language,
+                'category': best_topic.get('category', 'General'),
+                'content': content_data.get('content', {}),
+                'video': video_result,
+                'upload_result': upload_result,
+                'trend_reason': best_topic.get('reason', ''),
+                'view_potential': best_topic.get('view_potential', 'medium'),
+                'mode': 'automatic'
+            })
         
         return {
             'status': 'success',
-            'videos_planned': len(daily_plan.get('daily_plan', [])),
-            'videos_created': len([r for r in results if r.get('status') not in ['skipped', 'error']]),
-            'details': results,
+            'mode': 'automatic',
+            'topic': best_topic['topic'],
+            'trend_reason': best_topic.get('reason', ''),
+            'content': content_data.get('content', {}),
+            'video': video_result,
+            'upload': upload_result,
             'timestamp': datetime.now().isoformat()
         }
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# MANUAL UPLOAD ENDPOINT
+# ============================================
+# MANUAL VIDEO CREATION (User Prompt)
+# ============================================
+@app.post("/manual-create-video")
+async def manual_create_video(request: ManualVideoRequest):
+    """
+    COMPLETE MANUAL WORKFLOW:
+    1. User Provides Topic/Prompt
+    2. Generate Script + Title + Description + Tags
+    3. Create AI Video
+    4. Upload to YouTube/Instagram
+    5. Store in Memory
+    """
+    try:
+        if not content:
+            return {'status': 'error', 'message': 'Content Agent not available'}
+        
+        # STEP 1: Generate Complete Content from User Prompt
+        content_data = content.create_complete_content(
+            topic=request.topic,
+            platform=request.platform,
+            language=request.language,
+            auto_mode=False
+        )
+        
+        # STEP 2: Create AI Video
+        video_result = {'status': 'mock', 'url': ''}
+        if video:
+            script_text = content_data.get('content', {}).get('script', {}).get('full_script', '')
+            video_result = video.create_avatar_video(
+                script=script_text,
+                language=request.language
+            )
+        
+        # STEP 3: Upload to Platform
+        upload_result = {'status': 'mock', 'platform': request.platform}
+        if platform:
+            if request.platform == 'YouTube':
+                payload = platform.prepare_youtube(content_data, video_result.get('url', ''))
+                upload_result = platform.upload_youtube(payload)
+            else:
+                payload = platform.prepare_instagram(content_data, video_result.get('url', ''))
+                upload_result = platform.upload_instagram(payload)
+        
+        # STEP 4: Store in Memory (Learning)
+        if memory:
+            memory.save_posted_topic(
+                topic=request.topic,
+                platform=request.platform,
+                language=request.language
+            )
+            
+            memory.save_manual_post({
+                'topic': request.topic,
+                'platform': request.platform,
+                'language': request.language,
+                'content': content_data.get('content', {}),
+                'video': video_result,
+                'upload_result': upload_result,
+                'custom_instructions': request.custom_instructions,
+                'mode': 'manual'
+            })
+        
+        return {
+            'status': 'success',
+            'mode': 'manual',
+            'topic': request.topic,
+            'content': content_data.get('content', {}),
+            'video': video_result,
+            'upload': upload_result,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# ============================================
+# MANUAL UPLOAD (Your Own Video File)
+# ============================================
 @app.post("/manual-upload")
 async def manual_upload_video(
     title: str = Form(...),
@@ -203,14 +282,12 @@ async def manual_upload_video(
     tags: str = Form(...),
     video_file: UploadFile = File(...)
 ):
-    """Manual Video Upload"""
+    """Manual Video File Upload"""
     try:
-        # Save video file
         file_path = f"storage/uploads/{datetime.now().strftime('%Y%m%d_%H%M%S')}_{video_file.filename}"
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(video_file.file, buffer)
         
-        # Prepare for platform
         tags_list = [tag.strip() for tag in tags.split(',')]
         
         upload_result = {'status': 'mock'}
@@ -234,7 +311,6 @@ async def manual_upload_video(
                 }
                 upload_result = platform.upload_instagram(payload)
         
-        # Store in Memory
         if memory:
             memory.save_manual_post({
                 'title': title,
@@ -247,7 +323,6 @@ async def manual_upload_video(
                 'upload_result': upload_result,
                 'upload_type': 'manual'
             })
-            
             memory.save_posted_topic(title, platform, language)
         
         return {
@@ -260,7 +335,9 @@ async def manual_upload_video(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# ANALYTICS ENDPOINT (With Error Handling)
+# ============================================
+# ANALYTICS & POSTS
+# ============================================
 @app.get("/analytics")
 async def get_analytics():
     """Get Dashboard Analytics"""
@@ -295,7 +372,6 @@ async def get_analytics():
             'error': str(e)
         }
 
-# POSTS ENDPOINT (With Error Handling)
 @app.get("/posts")
 async def get_posts(limit: int = 50):
     """Get All Posts"""
@@ -307,45 +383,10 @@ async def get_posts(limit: int = 50):
     except Exception as e:
         return []
 
-# HEALTH ENDPOINT
 @app.get("/health")
 async def health():
     return {
         'status': 'online',
         'ceo': 'active' if ceo else 'inactive',
-        'daily_videos': '3 per day',
-        'manual_upload': 'enabled',
-        'memory': 'mock' if (memory and memory.use_mock) else 'mongodb',
-        'goal': 'Maximize Views, Subs, Followers',
-        'agents': {
-            'ceo': 'ready' if ceo else 'not initialized',
-            'content': 'ready' if content else 'not initialized',
-            'video': 'ready' if video else 'not initialized',
-            'platform': 'ready' if platform else 'not initialized',
-            'analytics': 'ready' if analytics else 'not initialized'
-        }
-    }
-
-# Background Automation (3 Videos Daily at 9 AM)
-async def auto_scheduler():
-    """Auto-post 3 videos daily at 9 AM"""
-    while True:
-        now = datetime.now()
-        if now.hour == 9 and now.minute == 0:
-            try:
-                await create_daily_3_videos()
-            except Exception as e:
-                print(f"Scheduled post failed: {e}")
-        await asyncio.sleep(60)
-
-@app.on_event("startup")
-async def startup_event():
-    if ceo:
-        asyncio.create_task(auto_scheduler())
-        print("[SYSTEM] ✅ 3 Daily Videos + Manual Upload Enabled")
-    else:
-        print("[SYSTEM] ⚠️ CEO Agent not available. Add GROQ_API_KEY secret.")
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=7860)
+        'auto_video': 'enabled',
+        'manual_video':
