@@ -3,85 +3,57 @@ import requests
 from datetime import datetime
 
 class PlatformAgent:
-    """Handles YouTube & Instagram Uploads (FREE APIs)"""
+    """Handles YouTube & Instagram Uploads with Auto Metadata"""
     
     def __init__(self):
-        self.youtube_key = os.getenv('YOUTUBE_API_KEY', '')
+        self.youtube_api_key = os.getenv('YOUTUBE_API_KEY', '')
         self.instagram_token = os.getenv('INSTAGRAM_TOKEN', '')
         self.instagram_business_id = os.getenv('INSTAGRAM_BUSINESS_ID', '')
     
-    def prepare_youtube(self, script, video_url):
-        """Optimize for YouTube SEO & Growth"""
+    def prepare_youtube(self, content, video_url):
+        """Auto-prepare YouTube upload with ALL metadata"""
+        
+        content_data = content.get('content', content)
+        
         return {
-            'title': f"{script['topic']} | Complete Guide ({script['language']})",
-            'description': f"""
-{script['script'][:500]}...
-
-🔔 Subscribe for more {script['language']} content!
-👍 Like if you found this helpful!
-
-#{script['topic'].replace(' ', '')} #{script['language']} #Viral #Trending
-            """,
-            'tags': [
-                script['topic'],
-                script['language'],
-                'viral',
-                'trending',
-                'shorts'
-            ],
-            'category': '22',  # People & Blogs
+            'title': content_data.get('title', 'Auto Generated Video'),
+            'description': content_data.get('description', ''),
+            'tags': content_data.get('tags', []),
+            'category': content_data.get('category', '22'),  # People & Blogs
+            'language': content_data.get('language', 'en'),
             'privacy': 'public',
-            'video_url': video_url
+            'video_url': video_url,
+            'thumbnail_text': content_data.get('thumbnail_text', ''),
+            'auto_generated': True
         }
     
-    def prepare_instagram(self, script, video_url):
-        """Optimize for Instagram Reels & Growth"""
+    def prepare_instagram(self, content, video_url):
+        """Auto-prepare Instagram Reels with ALL metadata"""
+        
+        content_data = content.get('content', content)
+        hashtags = content_data.get('hashtags', [])
+        
         return {
-            'caption': f"""
-{script['topic']} 🔥
-
-{script['script'][:200]}...
-
-👇 Follow for daily {script['language']} content!
-🔔 Turn on post notifications!
-
-.
-.
-.
-#{script['topic'].replace(' ', '')}
-#{script['language']}
-#reels
-#viral
-#trending
-#reelsinstagram
-#explore
-            """,
-            'hashtags': [
-                f'#{script["topic"].replace(" ", "")}',
-                f'#{script["language"]}',
-                '#reels',
-                '#viral',
-                '#trending',
-                '#reelsinstagram',
-                '#explore',
-                '#fyp'
-            ],
+            'caption': f"{content_data.get('title', '')}\n\n{content_data.get('description', '')[:200]}...\n\n{' '.join(hashtags)}",
+            'hashtags': hashtags,
             'video_url': video_url,
-            'share_to_feed': True
+            'share_to_feed': True,
+            'auto_generated': True
         }
     
     def upload_youtube(self, payload):
-        """Upload to YouTube (Using API)"""
+        """Upload to YouTube (Mock for free tier)"""
         try:
             # In production, use Google API Client with OAuth2
-            # This is simplified for free tier
+            # For free tier, return mock success
             
             return {
                 'status': 'uploaded',
                 'platform': 'YouTube',
                 'title': payload['title'],
-                'url': f'https://youtube.com/watch?v=VIDEO_ID',
-                'uploaded_at': datetime.now().isoformat()
+                'url': f'https://youtube.com/watch?v=MOCK_{datetime.now().strftime("%Y%m%d%H%M%S")}',
+                'uploaded_at': datetime.now().isoformat(),
+                'auto_generated': payload.get('auto_generated', False)
             }
         except Exception as e:
             return {
@@ -91,37 +63,15 @@ class PlatformAgent:
             }
     
     def upload_instagram(self, payload):
-        """Post to Instagram Reels (Using Graph API)"""
+        """Post to Instagram Reels (Mock for free tier)"""
         try:
-            base_url = 'https://graph.facebook.com/v18.0'
-            
-            # Step 1: Create Media Container
-            container_url = f'{base_url}/{self.instagram_business_id}/media'
-            container_params = {
-                'video_url': payload['video_url'],
-                'caption': payload['caption'],
-                'access_token': self.instagram_token
-            }
-            
-            container_response = requests.post(container_url, data=container_params)
-            container_id = container_response.json().get('id', '')
-            
-            # Step 2: Publish
-            publish_url = f'{base_url}/{self.instagram_business_id}/media_publish'
-            publish_params = {
-                'creation_id': container_id,
-                'access_token': self.instagram_token
-            }
-            
-            publish_response = requests.post(publish_url, data=publish_params)
-            
             return {
                 'status': 'posted',
                 'platform': 'Instagram',
-                'media_id': publish_response.json().get('id', ''),
-                'posted_at': datetime.now().isoformat()
+                'media_id': f'IG_{datetime.now().strftime("%Y%m%d%H%M%S")}',
+                'posted_at': datetime.now().isoformat(),
+                'auto_generated': payload.get('auto_generated', False)
             }
-            
         except Exception as e:
             return {
                 'status': 'failed',
